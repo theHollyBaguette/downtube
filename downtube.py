@@ -1,4 +1,5 @@
-from pytube import YouTube, Stream
+from pytube import YouTube
+from pytube.helpers import RegexMatchError
 from sys import argv
 from pytube.cli import on_progress
 from moviepy.editor import VideoFileClip, AudioFileClip
@@ -15,7 +16,11 @@ def main():
         print("You need to provide a link")
         quit()
 
-    yt = YouTube(link, on_progress_callback=on_progress)
+    try:
+        yt = YouTube(link, on_progress_callback=on_progress)
+    except RegexMatchError as e:
+        print("Check your link.", e)
+        quit()
 
     print(link)
     print("Title: ", yt.title)
@@ -24,6 +29,12 @@ def main():
 
     audio_stream = yt.streams.get_audio_only()
     video_stream = yt.streams.filter(adaptive=True, only_video=True).first()
+
+    if audio_stream is None:
+        quit("Error: No audio stream found")
+
+    if video_stream is None:
+        quit("Error: No video stream found")
 
     print(audio_stream)
     print(video_stream)
